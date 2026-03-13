@@ -1,34 +1,40 @@
 name: Run Trading Agents Pipeline
 
-# The 'workflow_dispatch' trigger is what creates the "Run workflow" button 
-# so you can execute this entirely on demand.
 on:
-  workflow_dispatch:
+  workflow_dispatch: # Keeps the manual "Run workflow" button
+  schedule:
+    # 10:30 UTC is exactly 4:00 PM IST. 
+    # The '1-5' ensures it only runs Monday through Friday (market days).
+    - cron: '30 10 * * 1-5'
 
 jobs:
   execute-pipeline:
     runs-on: ubuntu-latest
+    strategy:
+      # Prevents the entire batch from failing if just one stock errors out
+      fail-fast: false 
+      matrix:
+        # Your 5 specific Indian stocks
+        company: [RELIANCE, TATASTEEL, ICICIBANK, ETERNAL, ADANIENT]
 
     steps:
-      # Step 1: Get your code from the repository
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Step 2: Set up the Python environment (similar to creating your venv)
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10' # Update this if you are using a different version
+          python-version: '3.10' 
+          cache: 'pip' # Efficiently caches your requirements.txt
 
-      # Step 3: Install your required packages
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Step 4: Execute the actual LLM script
-      - name: Run Main Script
+      - name: Run Main Script for ${{ matrix.company }}
         env:
-          # You MUST set this in GitHub Secrets so Groq can authenticate
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # Injects the current matrix symbol into the environment for Python to read
+          COMPANY_NAME: ${{ matrix.company }}
         run: python main.py
