@@ -35,6 +35,11 @@ jobs:
       - name: Run Main Script for ${{ matrix.company }}
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          # Injects the current matrix symbol into the environment for Python to read
           COMPANY_NAME: ${{ matrix.company }}
+          # Database Secrets mapping to Environment Variables
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_PORT: ${{ secrets.DB_PORT }}
         run: python main.py
