@@ -1,7 +1,9 @@
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
-
+from database.database_service import process_results, store_agent_reports
 from dotenv import load_dotenv
+from datetime import datetime
+import os
 
 # Load environment variables from .env file
 load_dotenv()
@@ -24,8 +26,15 @@ config["data_vendors"] = {
 # Initialize with custom config
 ta = TradingAgentsGraph(debug=True, config=config)
 
+
+company_symbol = str(os.environ.get("COMPANY_NAME"))
+analysis_date = datetime.today().strftime('%Y-%m-%d')
+
 # forward propagate
-_, decision = ta.propagate("NVDA", "2024-05-10")
+_, decision = ta.propagate(company_symbol + ".NS", analysis_date)
+
+process_results(company_symbol, analysis_date, decision)
+store_agent_reports()
 print(decision)
 
 # Memorize mistakes and reflect
